@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #/*
 # * Copyright 2023 CoreLayer BV
 # *
@@ -14,17 +15,15 @@
 # *    limitations under the License.
 # */
 
-build:
-	bash scripts/build.sh
+clear
+echo "Cleaning up citrixadc-backup"
+echo "----------------------------"
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
+DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 
-clean:
-	bash scripts/clean.sh
+cd "$DIR"
 
-coverage:
-	bash scripts/coverage.sh
-
-run:
-	go run main.go
-
-test:
-	bash scripts/test.sh
+echo "Cleaning up previous builds and packages"
+rm -rf bin
+rm -rf pkg
