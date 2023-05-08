@@ -25,23 +25,23 @@ DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 cd "$DIR"
 
 echo "Cleaning up previous builds and packages"
-rm -rf bin/*
-rm -rf pkg/*
+rm -rf output/bin/*
+rm -rf output/pkg/*
 
 
 echo "Build executables per platform"
-OUTPUT="bin/linux/amd64/netscaleradc-backup"
+OUTPUT="output/bin/linux/amd64/netscaleradc-backup"
 echo " - linux-amd64 --> $OUTPUT"
 GOOS=linux GOARCH=amd64 go build -o $OUTPUT main.go
 
-OUTPUT="bin/windows/amd64/netscaleradc-backup.exe"
+OUTPUT="output/bin/windows/amd64/netscaleradc-backup.exe"
 echo " - windows-amd64 --> $OUTPUT"
 GOOS=windows GOARCH=amd64 go build -o $OUTPUT main.go
 
-OUTPUT="bin/darwin/amd64/netscaleradc-backup"
+OUTPUT="output/bin/darwin/amd64/netscaleradc-backup"
 echo " - darwin-amd64 --> $OUTPUT"
 GOOS=darwin GOARCH=amd64 go build -o $OUTPUT main.go
 
-OUTPUT="bin/darwin/arm64/netscaleradc-backup"
+OUTPUT="output/bin/darwin/arm64/netscaleradc-backup"
 echo " - darwin-arm64 --> $OUTPUT"
 GOOS=darwin GOARCH=arm64 go build -o $OUTPUT main.go
