@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro"
-	"github.com/corelayer/netscaleradc-nitro-go/pkg/resource/config"
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/resource/controllers"
 	"github.com/corelayer/netscaleradc-registry/pkg/registry"
 
@@ -164,7 +163,7 @@ func (b *Backup) createBackup(client *nitro.Client, name string, level string) e
 
 	c := controllers.NewBackupController(client)
 	// TODO Change level to string (also in upstream nitroClient resource
-	_, err := c.Create(name, config.SystemBackupLevelFull)
+	_, err := c.Create(name, level)
 	return err
 }
 
