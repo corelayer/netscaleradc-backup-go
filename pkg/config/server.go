@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package models
+package config
 
-type Daemon struct {
-	Interval int  `yaml:"interval"` // Execute backup procedure every x seconds
-	Metrics  bool `yaml:"metrics"`  // Enable metrics
+type Server struct {
+	Address  string `yaml:"address"`
+	Port     int    `yaml:"port"`
+	Metrics  bool   `yaml:"metrics"`  // Enable/Disable metrics
+	Interval int    `yaml:"interval"` // Execute backup procedure every x seconds
 }

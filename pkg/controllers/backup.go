@@ -31,12 +31,12 @@ import (
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/resource/controllers"
 	"github.com/corelayer/netscaleradc-registry/pkg/registry"
 
-	"github.com/corelayer/netscaleradc-backup/pkg/models"
+	"github.com/corelayer/netscaleradc-backup/pkg/config"
 )
 
 type Backup struct{}
 
-func (b *Backup) Execute(c models.Configuration) {
+func (b *Backup) Execute(c config.Application) {
 	err := b.initializeOutputPaths(c)
 	if err != nil {
 		// TODO Error handling
@@ -45,23 +45,23 @@ func (b *Backup) Execute(c models.Configuration) {
 	var wg sync.WaitGroup
 	for _, e := range c.Organization.Environments {
 		wg.Add(1)
-		go b.backupEnvironment(e, c.Output, &wg)
+		go b.backupEnvironment(e, c.Backup, &wg)
 	}
 	wg.Wait()
 }
 
-func (b *Backup) initializeOutputPaths(c models.Configuration) error {
+func (b *Backup) initializeOutputPaths(c config.Application) error {
 	var err error
 
-	err = b.createDirectory(c.Output.BasePath)
+	err = b.createDirectory(c.Backup.BasePath)
 	if err != nil {
 		return err
 	}
 
-	if c.Output.FolderPerTarget {
+	if c.Backup.FolderPerTarget {
 		for _, e := range c.Organization.Environments {
 			for _, n := range e.Nodes {
-				path := filepath.Join(c.Output.BasePath, e.Name, n.Name)
+				path := filepath.Join(c.Backup.BasePath, e.Name, n.Name)
 				err = b.createDirectory(path)
 				if err != nil {
 					// TODO log?
@@ -97,14 +97,14 @@ func (b *Backup) getTimestamp() string {
 	)
 }
 
-func (b *Backup) getOutputPath(environment string, node string, s models.Output) string {
+func (b *Backup) getOutputPath(environment string, node string, s config.Backup) string {
 	if s.FolderPerTarget {
 		return filepath.Join(s.BasePath, environment, node)
 	}
 	return s.BasePath
 }
 
-func (b *Backup) backupEnvironment(e registry.Environment, s models.Output, wg *sync.WaitGroup) {
+func (b *Backup) backupEnvironment(e registry.Environment, s config.Backup, wg *sync.WaitGroup) {
 	var err error
 	var nitroClients map[string]*nitro.Client
 	nitroClients, err = e.GetAllNitroClients()

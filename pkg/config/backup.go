@@ -14,12 +14,10 @@
  *    limitations under the License.
  */
 
-package models
+package config
 
-import "github.com/corelayer/netscaleradc-registry/pkg/registry"
-
-type Configuration struct {
-	Organization registry.Organization `yaml:"organization"`
-	Output       Output                `yaml:"output"`
-	Daemon       Daemon                `yaml:"daemon"`
+type Backup struct {
+	BasePath        string `yaml:"outputbasepath"`
+	FolderPerTarget bool   `yaml:"folderpertarget"`
+	Level           string `yaml:"level"`
 }
