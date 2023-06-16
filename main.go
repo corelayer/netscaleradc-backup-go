@@ -18,6 +18,8 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/corelayer/netscaleradc-backup/cmd"
 )
 
 // Banner generated at https://patorjk.com/software/taag/#p=display&v=3&f=Ivrit&t=NetScaler%20ADC%20-%20Backup
@@ -25,4 +27,5 @@ var banner = "  _   _      _   ____            _                _    ____   ____
 
 func main() {
 	fmt.Println(banner)
+	cmd.Execute()
 }
