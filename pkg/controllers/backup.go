@@ -41,7 +41,7 @@ type Backup struct {
 //func (b *Backup) Execute(c config.Application) {
 //	err := b.initializeOutputPaths(c)
 //	if err != nil {
-//		// TODO Error handling
+//		// Error handling
 //	}
 //
 //	var wg sync.WaitGroup
@@ -62,7 +62,7 @@ type Backup struct {
 //		path := filepath.Join(b.basePath, b.prefix, b.environment.Name, n.Name)
 //		err = b.createDirectory(path)
 //		if err != nil {
-//			// TODO log?
+//			// log?
 //			return err
 //		}
 //	}
@@ -106,24 +106,18 @@ func (b *Backup) Execute() error {
 	var nitroClients map[string]*nitro.Client
 	nitroClients, err = b.environment.GetAllNitroClients()
 	if err != nil {
-		// TODO log?
-		//wg.Done()
 		return err
 	}
 
 	var primary string
 	primary, err = b.environment.GetPrimaryNodeName()
 	if err != nil {
-		// TODO log?
-		//wg.Done()
 		return err
 	}
 
 	backupName := b.getTimestamp() + ".tgz"
 	err = b.Create(nitroClients[primary], backupName, b.level)
 	if err != nil {
-		// TODO log?
-		//wg.Done()
 		return err
 	}
 
@@ -131,8 +125,6 @@ func (b *Backup) Execute() error {
 		var r *io.Reader
 		r, err = b.Download(nitroClients[n.Name], backupName)
 		if err != nil {
-			// TODO log?
-			//wg.Done()
 			return err
 		}
 
@@ -144,15 +136,11 @@ func (b *Backup) Execute() error {
 		}
 		err = b.WriteToDisk(output, r)
 		if err != nil {
-			// TODO log?
-			//wg.Done()
 			return err
 		}
 
 		err = b.Delete(nitroClients[n.Name], backupName)
 		if err != nil {
-			// TODO log?
-			//wg.Done()
 			return err
 		}
 	}
@@ -180,7 +168,6 @@ func (b *Backup) WriteToDisk(filepath string, data *io.Reader) error {
 
 	_, err := buffer.ReadFrom(reader)
 	if err != nil {
-		// TODO log?
 		return err
 	}
 
