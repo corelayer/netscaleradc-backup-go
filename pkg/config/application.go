@@ -16,10 +16,12 @@
 
 package config
 
-import "github.com/corelayer/netscaleradc-registry/pkg/registry"
+import (
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
+)
 
 type Application struct {
-	Organization registry.Organization `yaml:"organization"`
-	Backup       Backup                `yaml:"backup"`
-	Server       Server                `yaml:"server"`
+	Organization []registry.Organization `yaml:"organization"`
+	Backup       Backup                  `yaml:"backup"`
+	Server       Server                  `yaml:"server"`
 }

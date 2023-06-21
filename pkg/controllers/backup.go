@@ -28,8 +28,8 @@ import (
 	"time"
 
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro"
-	"github.com/corelayer/netscaleradc-nitro-go/pkg/resource/controllers"
-	"github.com/corelayer/netscaleradc-registry/pkg/registry"
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro/resource/controllers"
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
 
 	"github.com/corelayer/netscaleradc-backup/pkg/config"
 )
@@ -43,9 +43,12 @@ func (b *Backup) Execute(c config.Application) {
 	}
 
 	var wg sync.WaitGroup
-	for _, e := range c.Organization.Environments {
-		wg.Add(1)
-		go b.backupEnvironment(e, c.Backup, &wg)
+	for _, o := range c.Organization {
+		for _, e := range o.Environments {
+			wg.Add(1)
+			outputPath := b.getOutputPath(c.Backup.BasePath, o.Name, e.Name, c.Backup.FolderPerEnvironment)
+			go b.backupEnvironment(o.Name, e, outputPath, c.Backup.Level, &wg)
+		}
 	}
 	wg.Wait()
 }
@@ -53,21 +56,35 @@ func (b *Backup) Execute(c config.Application) {
 func (b *Backup) initializeOutputPaths(c config.Application) error {
 	var err error
 
+	// Create directory defined as BasePath
 	err = b.createDirectory(c.Backup.BasePath)
 	if err != nil {
 		return err
 	}
 
-	if c.Backup.FolderPerTarget {
-		for _, e := range c.Organization.Environments {
-			for _, n := range e.Nodes {
-				path := filepath.Join(c.Backup.BasePath, e.Name, n.Name)
-				err = b.createDirectory(path)
-				if err != nil {
-					// TODO log?
-					return err
+	//
+	if c.Backup.FolderPerEnvironment {
+		for _, o := range c.Organization {
+			for _, e := range o.Environments {
+				for _, n := range e.Nodes {
+					path := filepath.Join(c.Backup.BasePath, o.Name, e.Name, n.Name)
+					err = b.createDirectory(path)
+					if err != nil {
+						// TODO log?
+						return err
+					}
 				}
 			}
+		}
+		return nil
+	}
+
+	for _, o := range c.Organization {
+		path := filepath.Join(c.Backup.BasePath, o.Name)
+		err = b.createDirectory(path)
+		if err != nil {
+			// TODO log?
+			return err
 		}
 	}
 	return nil
@@ -97,14 +114,14 @@ func (b *Backup) getTimestamp() string {
 	)
 }
 
-func (b *Backup) getOutputPath(environment string, node string, s config.Backup) string {
-	if s.FolderPerTarget {
-		return filepath.Join(s.BasePath, environment, node)
+func (b *Backup) getOutputPath(basePath string, organization string, environment string, folderPerEnvironment bool) string {
+	if folderPerEnvironment {
+		return filepath.Join(basePath, organization, environment)
 	}
-	return s.BasePath
+	return filepath.Join(basePath, organization)
 }
 
-func (b *Backup) backupEnvironment(e registry.Environment, s config.Backup, wg *sync.WaitGroup) {
+func (b *Backup) backupEnvironment(organizationName string, e registry.Environment, outputPath string, level string, wg *sync.WaitGroup) {
 	var err error
 	var nitroClients map[string]*nitro.Client
 	nitroClients, err = e.GetAllNitroClients()
@@ -123,7 +140,7 @@ func (b *Backup) backupEnvironment(e registry.Environment, s config.Backup, wg *
 	}
 
 	backupName := b.getTimestamp() + ".tgz"
-	err = b.createBackup(nitroClients[primary], backupName, s.Level)
+	err = b.createBackup(nitroClients[primary], backupName, level)
 	if err != nil {
 		// TODO log?
 		wg.Done()
@@ -139,7 +156,12 @@ func (b *Backup) backupEnvironment(e registry.Environment, s config.Backup, wg *
 			return
 		}
 
-		output := filepath.Join(b.getOutputPath(e.Name, n.Name, s), e.Name+"_"+n.Name+"_"+backupName)
+		var output string
+		if organizationName != "" {
+			output = filepath.Join(outputPath, n.Name, organizationName+"_"+e.Name+"_"+n.Name+"_"+backupName)
+		} else {
+			output = filepath.Join(outputPath, n.Name, e.Name+"_"+n.Name+"_"+backupName)
+		}
 		err = b.writeBackupToDisk(output, r)
 		if err != nil {
 			// TODO log?

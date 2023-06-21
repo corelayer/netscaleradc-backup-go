@@ -17,8 +17,8 @@
 package config
 
 type Server struct {
-	Address  string `yaml:"address"`
-	Port     int    `yaml:"port"`
-	Metrics  bool   `yaml:"metrics"`  // Enable/Disable metrics
-	Interval int    `yaml:"interval"` // Execute backup procedure every x seconds
+	Address  string `json:"address" yaml:"address" mapstructure:"address"`
+	Port     int    `json:"port" yaml:"port" mapstructure:"port"`
+	Metrics  bool   `json:"metrics" yaml:"metrics" mapstructure:"metrics"`    // Enable/Disable metrics
+	Interval int    `json:"interval" yaml:"interval" mapstructure:"interval"` // Execute backup procedure every x seconds
 }

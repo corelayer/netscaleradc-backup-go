@@ -1,11 +1,9 @@
 github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230503144630-1097b97daaaa h1:OtZJBGdQhYzB+ca4/1ibXzgxFBw+/E7Ct4NvDAYprjc=
 github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230503144630-1097b97daaaa/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230509103033-105855723b63 h1:18T8OBjrgUrGXt/r6pPIwtHlN5BRmuCPxXFe8yvtrl0=
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230509103033-105855723b63/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
-github.com/corelayer/netscaleradc-registry v0.0.0-20230508175531-a3c4e3ebd3e3 h1:/Mt03cPeo3gilUupzBHKm+mhOGbLW9RhO3cZfHKXY98=
-github.com/corelayer/netscaleradc-registry v0.0.0-20230508175531-a3c4e3ebd3e3/go.mod h1:XlupLqYoK5ypAzHe/0zg+3akoDDWWieZ2vTGOTzQha4=
-github.com/corelayer/netscaleradc-registry v0.0.0-20230508183336-19a905c6d565 h1:ajffhswsC43/x2Nb7eORTx+zzc6n5LPMu4eCwk/b2VY=
-github.com/corelayer/netscaleradc-registry v0.0.0-20230508183336-19a905c6d565/go.mod h1:gnYvEyQCIHzkaJLzb4FGmAumMnaBPDt90Q019pJQm/A=
+github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621121231-39af016b55c1 h1:/TlX/jHOpoNfQ5CFhkOaMvtKU9qQsoxostuvVXXOE8E=
+github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621121231-39af016b55c1/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
+github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621151624-90837ac65eeb h1:DoRKgI0ILshvz1PA3AU6C8tlU6EQrHahdTYkNIiE0N8=
+github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621151624-90837ac65eeb/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=

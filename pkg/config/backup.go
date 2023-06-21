@@ -17,7 +17,8 @@
 package config
 
 type Backup struct {
-	BasePath        string `yaml:"outputbasepath"`
-	FolderPerTarget bool   `yaml:"folderpertarget"`
-	Level           string `yaml:"level"`
+	BasePath string `json:"basePath" yaml:"basePath" mapstructure:"basePath"`
+	// FolderPerOrganization bool   `json:"folderPerOrganization" yaml:"folderPerOrganization" mapstructure:"folderPerOrganization"`
+	FolderPerEnvironment bool   `json:"folderPerEnvironment" yaml:"folderPerEnvironment" mapstructure:"folderPerEnvironment"`
+	Level                string `json:"level" yaml:"level" mapstructure:"level"`
 }
