@@ -24,83 +24,63 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro"
-	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro/resource/controllers"
+	nitroControllers "github.com/corelayer/netscaleradc-nitro-go/pkg/nitro/resource/controllers"
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
-
-	"github.com/corelayer/netscaleradc-backup/pkg/config"
 )
 
-type Backup struct{}
-
-func (b *Backup) Execute(c config.Application) {
-	err := b.initializeOutputPaths(c)
-	if err != nil {
-		// TODO Error handling
-	}
-
-	var wg sync.WaitGroup
-	for _, o := range c.Organization {
-		for _, e := range o.Environments {
-			wg.Add(1)
-			outputPath := b.getOutputPath(c.Backup.BasePath, o.Name, e.Name, c.Backup.FolderPerEnvironment)
-			go b.backupEnvironment(o.Name, e, outputPath, c.Backup.Level, &wg)
-		}
-	}
-	wg.Wait()
+type Backup struct {
+	basePath    string
+	prefix      string
+	environment registry.Environment
+	level       string
 }
 
-func (b *Backup) initializeOutputPaths(c config.Application) error {
-	var err error
+//func (b *Backup) Execute(c config.Application) {
+//	err := b.initializeOutputPaths(c)
+//	if err != nil {
+//		// TODO Error handling
+//	}
+//
+//	var wg sync.WaitGroup
+//	for _, o := range c.Organization {
+//		for _, e := range o.Environments {
+//			wg.Add(1)
+//			outputPath := b.getOutputPath(c.Backup.BasePath, o.Name, e.Name, c.Backup.FolderPerEnvironment)
+//			go b.backupEnvironment(o.Name, e, outputPath, c.Backup.Level, &wg)
+//		}
+//	}
+//	wg.Wait()
+//}
 
-	// Create directory defined as BasePath
-	err = b.createDirectory(c.Backup.BasePath)
-	if err != nil {
-		return err
-	}
+//func (b *Backup) initializeOutputPaths() error {
+//	var err error
+//
+//	for _, n := range b.environment.Nodes {
+//		path := filepath.Join(b.basePath, b.prefix, b.environment.Name, n.Name)
+//		err = b.createDirectory(path)
+//		if err != nil {
+//			// TODO log?
+//			return err
+//		}
+//	}
+//
+//	return nil
+//}
 
-	//
-	if c.Backup.FolderPerEnvironment {
-		for _, o := range c.Organization {
-			for _, e := range o.Environments {
-				for _, n := range e.Nodes {
-					path := filepath.Join(c.Backup.BasePath, o.Name, e.Name, n.Name)
-					err = b.createDirectory(path)
-					if err != nil {
-						// TODO log?
-						return err
-					}
-				}
-			}
-		}
-		return nil
-	}
-
-	for _, o := range c.Organization {
-		path := filepath.Join(c.Backup.BasePath, o.Name)
-		err = b.createDirectory(path)
-		if err != nil {
-			// TODO log?
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *Backup) createDirectory(path string) error {
-	src, err := os.Stat(path)
-
-	if os.IsNotExist(err) {
-		return os.MkdirAll(path, 0755)
-	} else if src.Mode().IsRegular() {
-		return os.ErrExist
-	} else {
-		return nil
-	}
-}
+//func (b *Backup) createDirectory(path string) error {
+//	src, err := os.Stat(path)
+//
+//	if os.IsNotExist(err) {
+//		return os.MkdirAll(path, 0755)
+//	} else if src.Mode().IsRegular() {
+//		return os.ErrExist
+//	} else {
+//		return nil
+//	}
+//}
 
 func (b *Backup) getTimestamp() string {
 	t := time.Now()
@@ -114,88 +94,87 @@ func (b *Backup) getTimestamp() string {
 	)
 }
 
-func (b *Backup) getOutputPath(basePath string, organization string, environment string, folderPerEnvironment bool) string {
-	if folderPerEnvironment {
-		return filepath.Join(basePath, organization, environment)
-	}
-	return filepath.Join(basePath, organization)
-}
+//func (b *Backup) getOutputPath(basePath string, organization string, environment string, folderPerEnvironment bool) string {
+//	if folderPerEnvironment {
+//		return filepath.Join(basePath, organization, environment)
+//	}
+//	return filepath.Join(basePath, organization)
+//}
 
-func (b *Backup) backupEnvironment(organizationName string, e registry.Environment, outputPath string, level string, wg *sync.WaitGroup) {
+func (b *Backup) Execute() error {
 	var err error
 	var nitroClients map[string]*nitro.Client
-	nitroClients, err = e.GetAllNitroClients()
+	nitroClients, err = b.environment.GetAllNitroClients()
 	if err != nil {
 		// TODO log?
-		wg.Done()
-		return
+		//wg.Done()
+		return err
 	}
 
 	var primary string
-	primary, err = e.GetPrimaryNodeName()
+	primary, err = b.environment.GetPrimaryNodeName()
 	if err != nil {
 		// TODO log?
-		wg.Done()
-		return
+		//wg.Done()
+		return err
 	}
 
 	backupName := b.getTimestamp() + ".tgz"
-	err = b.createBackup(nitroClients[primary], backupName, level)
+	err = b.Create(nitroClients[primary], backupName, b.level)
 	if err != nil {
 		// TODO log?
-		wg.Done()
-		return
+		//wg.Done()
+		return err
 	}
 
-	for _, n := range e.Nodes {
+	for _, n := range b.environment.Nodes {
 		var r *io.Reader
-		r, err = b.downloadBackup(nitroClients[n.Name], backupName)
+		r, err = b.Download(nitroClients[n.Name], backupName)
 		if err != nil {
 			// TODO log?
-			wg.Done()
-			return
+			//wg.Done()
+			return err
 		}
 
 		var output string
-		if organizationName != "" {
-			output = filepath.Join(outputPath, n.Name, organizationName+"_"+e.Name+"_"+n.Name+"_"+backupName)
+		if b.prefix != "" {
+			output = filepath.Join(b.basePath, n.Name, b.prefix+"_"+b.environment.Name+"_"+n.Name+"_"+backupName)
 		} else {
-			output = filepath.Join(outputPath, n.Name, e.Name+"_"+n.Name+"_"+backupName)
+			output = filepath.Join(b.basePath, n.Name, b.environment.Name+"_"+n.Name+"_"+backupName)
 		}
-		err = b.writeBackupToDisk(output, r)
+		err = b.WriteToDisk(output, r)
 		if err != nil {
 			// TODO log?
-			wg.Done()
-			return
+			//wg.Done()
+			return err
 		}
 
-		err = b.deleteBackup(nitroClients[n.Name], backupName)
+		err = b.Delete(nitroClients[n.Name], backupName)
 		if err != nil {
 			// TODO log?
-			wg.Done()
-			return
+			//wg.Done()
+			return err
 		}
 	}
-
+	return nil
 }
 
-func (b *Backup) createBackup(client *nitro.Client, name string, level string) error {
+func (b *Backup) Create(client *nitro.Client, name string, level string) error {
 	// Filename must have no extension
 	name = strings.TrimSuffix(name, ".tgz")
 
-	c := controllers.NewBackupController(client)
-	// TODO Change level to string (also in upstream nitroClient resource
+	c := nitroControllers.NewBackupController(client)
 	_, err := c.Create(name, level)
 	return err
 }
 
-func (b *Backup) downloadBackup(client *nitro.Client, name string) (*io.Reader, error) {
-	c := controllers.NewBackupController(client)
+func (b *Backup) Download(client *nitro.Client, name string) (*io.Reader, error) {
+	c := nitroControllers.NewBackupController(client)
 	return c.Download(name)
 
 }
 
-func (b *Backup) writeBackupToDisk(filepath string, data *io.Reader) error {
+func (b *Backup) WriteToDisk(filepath string, data *io.Reader) error {
 	reader := base64.NewDecoder(base64.StdEncoding, *data)
 	buffer := bytes.Buffer{}
 
@@ -209,8 +188,8 @@ func (b *Backup) writeBackupToDisk(filepath string, data *io.Reader) error {
 	return err
 }
 
-func (b *Backup) deleteBackup(client *nitro.Client, filename string) error {
-	c := controllers.NewBackupController(client)
+func (b *Backup) Delete(client *nitro.Client, filename string) error {
+	c := nitroControllers.NewBackupController(client)
 	_, err := c.Delete(filename)
 	return err
 }

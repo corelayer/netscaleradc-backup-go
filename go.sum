@@ -1,7 +1,3 @@
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230503144630-1097b97daaaa h1:OtZJBGdQhYzB+ca4/1ibXzgxFBw+/E7Ct4NvDAYprjc=
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230503144630-1097b97daaaa/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621121231-39af016b55c1 h1:/TlX/jHOpoNfQ5CFhkOaMvtKU9qQsoxostuvVXXOE8E=
-github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621121231-39af016b55c1/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
 github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621151624-90837ac65eeb h1:DoRKgI0ILshvz1PA3AU6C8tlU6EQrHahdTYkNIiE0N8=
 github.com/corelayer/netscaleradc-nitro-go v0.0.0-20230621151624-90837ac65eeb/go.mod h1:CMJif5vwTPQHqon2Jeq8k1PrliEhxO2MNgc+CLhpgxA=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=

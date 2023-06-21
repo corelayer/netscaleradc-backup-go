@@ -33,3 +33,6 @@ output/
 vendor/
 # - Go workspace file
 go.work
+
+
+netscaleradc-backup.yaml
