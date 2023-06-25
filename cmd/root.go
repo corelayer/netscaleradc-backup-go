@@ -27,12 +27,22 @@ var rootCmd = &cobra.Command{
 	Use: "nsbackup",
 	// CompletionOptions: cobra.CompletionOptions{
 	// 	DisableDefaultCmd: true},
-	Short: "Configuration Backup for NetScaler ADC",
-	Long: `Configuration Backup for NetScaler ADC
+	Short: "Backup utility for NetScaler ADC",
+	Long: `Backup utility for NetScaler ADC
 Complete documentation is available at http://github.com/corelayer/netscaleradc-backup-go`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Execute root")
-	},
+	// Run:     rootCmdRun,
+	Version: "build",
+}
+
+func rootCmdRun(cmd *cobra.Command, args []string) {
+	fmt.Println("Execute root")
+}
+
+func init() {
+	initBackupCmd()
+
+	rootCmd.AddCommand(backupCmd)
+	rootCmd.AddCommand(validateCmd)
 }
 
 func Execute() {

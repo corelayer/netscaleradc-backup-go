@@ -14,9 +14,21 @@
  *    limitations under the License.
  */
 
-package config
+package cmd
 
-type Application struct {
-	Jobs   []Job  `json:"jobs" yaml:"jobs" mapstructure:"jobs"`
-	Server Server `json:"server" yaml:"server" mapstructure:"server"`
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
+var validateCmd = &cobra.Command{
+	Use:   "validate",
+	Short: "Validate configuration",
+	Long:  `Validate the configuration as specified in the config file`,
+	Run:   validateCmdRun,
+}
+
+func validateCmdRun(cmd *cobra.Command, args []string) {
+	fmt.Println("validate")
 }

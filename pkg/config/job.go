@@ -16,9 +16,10 @@
 
 package config
 
-type Backup struct {
-	BasePath string `json:"basePath" yaml:"basePath" mapstructure:"basePath"`
-	// FolderPerOrganization bool   `json:"folderPerOrganization" yaml:"folderPerOrganization" mapstructure:"folderPerOrganization"`
-	FolderPerEnvironment bool   `json:"folderPerEnvironment" yaml:"folderPerEnvironment" mapstructure:"folderPerEnvironment"`
-	Level                string `json:"level" yaml:"level" mapstructure:"level"`
+import "github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
+
+type Job struct {
+	Name           string                 `json:"name" yaml:"name" mapstructure:"name"`
+	Environments   []registry.Environment `json:"environments" yaml:"environments" mapstructure:"environments"`
+	BackupSettings BackupSettings         `json:"backupSettings" yaml:"backupSettings" mapstructure:"backupSettings"`
 }

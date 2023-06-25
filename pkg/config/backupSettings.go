@@ -16,7 +16,11 @@
 
 package config
 
-type Application struct {
-	Jobs   []Job  `json:"jobs" yaml:"jobs" mapstructure:"jobs"`
-	Server Server `json:"server" yaml:"server" mapstructure:"server"`
+type BackupSettings struct {
+	BasePath             string `json:"basePath" yaml:"basePath" mapstructure:"basePath"`
+	Prefix               string `json:"prefix" yaml:"prefix" mapstructure:"prefix"`
+	FolderPerEnvironment bool   `json:"folderPerEnvironment" yaml:"folderPerEnvironment" mapstructure:"folderPerEnvironment"`
+	Level                string `json:"level" yaml:"level" mapstructure:"level"`
 }
+
+// FolderPerOrganization bool   `json:"folderPerOrganization" yaml:"folderPerOrganization" mapstructure:"folderPerOrganization"`
