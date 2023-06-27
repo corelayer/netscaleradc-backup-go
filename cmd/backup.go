@@ -18,14 +18,23 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
 
 	"github.com/spf13/cobra"
+
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
+
+	"github.com/corelayer/netscaleradc-backup/pkg/config"
+	"github.com/corelayer/netscaleradc-backup/pkg/controllers"
 )
 
 var backupCmd = &cobra.Command{
-	Use:   "backup",
-	Short: "Create backup",
-	Long:  `Create a backup of NetScaler ADC`,
+	Use:              "backup",
+	Short:            "Create backup",
+	Long:             `Create a backup of NetScaler ADC`,
+	PersistentPreRun: backupCmdPreRun,
 }
 
 var allCmd = &cobra.Command{
@@ -43,24 +52,128 @@ var jobCmd = &cobra.Command{
 	Run:   jobCmdRun,
 }
 
-var job string
-var environment string
+var environmentArg string
 
 func initBackupCmd() {
-	jobCmd.Flags().StringVarP(&environment, "environment", "e", "", "Environment to backup")
+	jobCmd.Flags().StringVarP(&environmentArg, "environmentArg", "e", "", "Environment to backup")
 
 	backupCmd.AddCommand(allCmd)
 	backupCmd.AddCommand(jobCmd)
 }
 
+func backupCmdPreRun(cmd *cobra.Command, args []string) {
+	var err error
+	for _, job := range C.Jobs {
+		err = createFolderPerJob(job)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+}
+
+func createFolderPerJob(job config.Job) error {
+	var err error
+	if job.BackupSettings.FolderPerEnvironment {
+		err = createFolderPerEnvironment(job)
+	} else {
+		err = createDirectory(job.BackupSettings.Path)
+	}
+	return err
+}
+
+func createFolderPerEnvironment(job config.Job) error {
+	var err error
+	for _, env := range job.Environments {
+		err = createDirectory(filepath.Join(job.BackupSettings.Path, env.Name))
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func createDirectory(path string) error {
+	src, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		return os.MkdirAll(path, 0755)
+	} else if src.Mode().IsRegular() {
+		return os.ErrExist
+	} else {
+		return nil
+	}
+}
+
 func allCmdRun(cmd *cobra.Command, args []string) {
-	fmt.Println("backup all")
+	var wg sync.WaitGroup
+	for _, job := range C.Jobs {
+		wg.Add(1)
+		go func(j config.Job, e string) {
+			runJob(j, e)
+			wg.Done()
+		}(job, "")
+	}
+	wg.Wait()
 }
 
 func jobCmdRun(cmd *cobra.Command, args []string) {
-	if environment != "" {
-		fmt.Printf("backup job %s - environment %s\n", args[0], environment)
-	} else {
-		fmt.Printf("backup job %s\n", args[0])
+	job, err := C.GetJob(args[0])
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(j config.Job, e string) {
+		runJob(j, e)
+		wg.Done()
+	}(job, environmentArg)
+
+}
+
+func runJob(job config.Job, environmentName string) {
+	fmt.Printf("Running job: %s\n", job.Name)
+
+	var wg sync.WaitGroup
+	var err error
+	if environmentName != "" {
+		var env registry.Environment
+		env, err = job.GetEnvironment(environmentName)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		wg.Add(1)
+		go func(e registry.Environment, s config.BackupSettings) {
+			doBackup(getOutputPath(s.Path, e.Name, s.FolderPerEnvironment), s.Prefix, s.Level, e)
+			wg.Done()
+		}(env, job.BackupSettings)
+	} else {
+		for _, env := range job.Environments {
+			wg.Add(1)
+			go func(e registry.Environment, s config.BackupSettings) {
+				doBackup(getOutputPath(s.Path, e.Name, s.FolderPerEnvironment), s.Prefix, s.Level, e)
+				wg.Done()
+			}(env, job.BackupSettings)
+		}
+	}
+	wg.Wait()
+}
+
+func doBackup(path string, prefix string, level string, e registry.Environment) {
+	c := controllers.NewBackupController(path, prefix, level, e)
+	err := c.Execute()
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func getOutputPath(basePath string, environment string, folderPerEnvironment bool) string {
+	if folderPerEnvironment {
+		return filepath.Join(basePath, environment)
+	}
+	return filepath.Join(basePath)
 }

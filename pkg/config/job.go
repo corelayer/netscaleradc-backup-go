@@ -16,10 +16,23 @@
 
 package config
 
-import "github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
+import (
+	"fmt"
+
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
+)
 
 type Job struct {
 	Name           string                 `json:"name" yaml:"name" mapstructure:"name"`
 	Environments   []registry.Environment `json:"environments" yaml:"environments" mapstructure:"environments"`
 	BackupSettings BackupSettings         `json:"backupSettings" yaml:"backupSettings" mapstructure:"backupSettings"`
+}
+
+func (j *Job) GetEnvironment(name string) (registry.Environment, error) {
+	for _, e := range j.Environments {
+		if e.Name == name {
+			return e, nil
+		}
+	}
+	return registry.Environment{}, fmt.Errorf("environment '%s' not found", name)
 }

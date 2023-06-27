@@ -21,8 +21,11 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/corelayer/netscaleradc-backup/pkg/config"
 )
 
+var C config.Application
 var rootCmd = &cobra.Command{
 	Use: "nsbackup",
 	// CompletionOptions: cobra.CompletionOptions{
@@ -45,8 +48,10 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 }
 
-func Execute() {
+func Execute(c config.Application) {
+	C = c
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Println("EXIT WITH ERROR")
 		fmt.Println(err)
 		os.Exit(1)
 	}

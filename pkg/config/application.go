@@ -16,7 +16,20 @@
 
 package config
 
+import (
+	"fmt"
+)
+
 type Application struct {
 	Jobs   []Job  `json:"jobs" yaml:"jobs" mapstructure:"jobs"`
 	Server Server `json:"server" yaml:"server" mapstructure:"server"`
+}
+
+func (a *Application) GetJob(name string) (Job, error) {
+	for _, j := range a.Jobs {
+		if j.Name == name {
+			return j, nil
+		}
+	}
+	return Job{}, fmt.Errorf("job '%s' not found in configuration", name)
 }

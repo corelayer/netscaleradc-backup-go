@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/viper"
 
@@ -41,15 +42,17 @@ func main() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("%w", err))
+		fmt.Println(fmt.Errorf("%w", err))
+		os.Exit(1)
 	}
 
 	err = viper.Unmarshal(&c)
 	if err != nil {
-		panic(fmt.Errorf("%w", err))
+		fmt.Println(fmt.Errorf("%w", err))
+		os.Exit(1)
 	}
 
 	fmt.Println(c)
 
-	cmd.Execute()
+	cmd.Execute(c)
 }

@@ -17,7 +17,7 @@
 package config
 
 type BackupSettings struct {
-	BasePath             string `json:"basePath" yaml:"basePath" mapstructure:"basePath"`
+	Path                 string `json:"basePath" yaml:"basePath" mapstructure:"basePath"`
 	Prefix               string `json:"prefix" yaml:"prefix" mapstructure:"prefix"`
 	FolderPerEnvironment bool   `json:"folderPerEnvironment" yaml:"folderPerEnvironment" mapstructure:"folderPerEnvironment"`
 	Level                string `json:"level" yaml:"level" mapstructure:"level"`
