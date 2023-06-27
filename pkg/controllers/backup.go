@@ -27,60 +27,26 @@ import (
 	"time"
 
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro"
+	"github.com/corelayer/netscaleradc-nitro-go/pkg/nitro/resource/config"
 	nitroControllers "github.com/corelayer/netscaleradc-nitro-go/pkg/nitro/resource/controllers"
 	"github.com/corelayer/netscaleradc-nitro-go/pkg/registry"
 )
 
 type Backup struct {
-	basePath    string
+	path        string
 	prefix      string
-	environment registry.Environment
 	level       string
+	environment registry.Environment
 }
 
-//func (b *Backup) Execute(c config.Application) {
-//	err := b.initializeOutputPaths(c)
-//	if err != nil {
-//		// Error handling
-//	}
-//
-//	var wg sync.WaitGroup
-//	for _, o := range c.Organization {
-//		for _, e := range o.Environments {
-//			wg.Add(1)
-//			outputPath := b.getOutputPath(c.Backup.BasePath, o.Name, e.Name, c.Backup.FolderPerEnvironment)
-//			go b.backupEnvironment(o.Name, e, outputPath, c.Backup.Level, &wg)
-//		}
-//	}
-//	wg.Wait()
-//}
-
-//func (b *Backup) initializeOutputPaths() error {
-//	var err error
-//
-//	for _, n := range b.environment.Nodes {
-//		path := filepath.Join(b.basePath, b.prefix, b.environment.Name, n.Name)
-//		err = b.createDirectory(path)
-//		if err != nil {
-//			// log?
-//			return err
-//		}
-//	}
-//
-//	return nil
-//}
-
-//func (b *Backup) createDirectory(path string) error {
-//	src, err := os.Stat(path)
-//
-//	if os.IsNotExist(err) {
-//		return os.MkdirAll(path, 0755)
-//	} else if src.Mode().IsRegular() {
-//		return os.ErrExist
-//	} else {
-//		return nil
-//	}
-//}
+func NewBackupController(path string, prefix string, level string, environment registry.Environment) Backup {
+	return Backup{
+		path:        path,
+		prefix:      prefix,
+		level:       level,
+		environment: environment,
+	}
+}
 
 func (b *Backup) getTimestamp() string {
 	t := time.Now()
@@ -93,13 +59,6 @@ func (b *Backup) getTimestamp() string {
 		t.Second(),
 	)
 }
-
-//func (b *Backup) getOutputPath(basePath string, organization string, environment string, folderPerEnvironment bool) string {
-//	if folderPerEnvironment {
-//		return filepath.Join(basePath, organization, environment)
-//	}
-//	return filepath.Join(basePath, organization)
-//}
 
 func (b *Backup) Execute() error {
 	var err error
@@ -115,7 +74,8 @@ func (b *Backup) Execute() error {
 		return err
 	}
 
-	backupName := b.getTimestamp() + ".tgz"
+	timestamp := b.getTimestamp()
+	backupName := timestamp + ".tgz"
 	err = b.Create(nitroClients[primary], backupName, b.level)
 	if err != nil {
 		return err
@@ -127,12 +87,13 @@ func (b *Backup) Execute() error {
 		if err != nil {
 			return err
 		}
+		fmt.Println("Download complete")
 
 		var output string
 		if b.prefix != "" {
-			output = filepath.Join(b.basePath, n.Name, b.prefix+"_"+b.environment.Name+"_"+n.Name+"_"+backupName)
+			output = filepath.Join(b.path, timestamp+"_"+b.prefix+"_"+n.Name+".tgz")
 		} else {
-			output = filepath.Join(b.basePath, n.Name, b.environment.Name+"_"+n.Name+"_"+backupName)
+			output = filepath.Join(b.path, timestamp+"_"+n.Name+".tgz")
 		}
 		err = b.WriteToDisk(output, r)
 		if err != nil {
@@ -157,21 +118,38 @@ func (b *Backup) Create(client *nitro.Client, name string, level string) error {
 }
 
 func (b *Backup) Download(client *nitro.Client, name string) (*io.Reader, error) {
-	c := nitroControllers.NewBackupController(client)
-	return c.Download(name)
+	// c := nitroControllers.NewBackupController(client)
+	// return c.Download(name)
 
+	var err error
+	c := nitroControllers.NewSystemFileController(client)
+	var res *nitro.Response[config.SystemFile]
+	res, err = c.Get(name, "/var/ns_sys_backup", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Data) != 1 {
+		err = fmt.Errorf("invalid amount of files in data")
+		return nil, err
+	}
+
+	var output io.Reader
+	output = base64.NewDecoder(base64.StdEncoding, strings.NewReader(res.Data[0].Content))
+
+	return &output, nil
 }
 
-func (b *Backup) WriteToDisk(filepath string, data *io.Reader) error {
-	reader := base64.NewDecoder(base64.StdEncoding, *data)
+func (b *Backup) WriteToDisk(path string, data *io.Reader) error {
 	buffer := bytes.Buffer{}
 
-	_, err := buffer.ReadFrom(reader)
+	_, err := buffer.ReadFrom(*data)
 	if err != nil {
+		fmt.Println("Error reading")
 		return err
 	}
 
-	err = os.WriteFile(filepath, buffer.Bytes(), 0644)
+	err = os.WriteFile(path, buffer.Bytes(), 0644)
 	return err
 }
 
