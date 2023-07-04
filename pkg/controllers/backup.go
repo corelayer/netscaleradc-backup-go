@@ -87,7 +87,6 @@ func (b *Backup) Execute() error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Download complete")
 
 		var output string
 		if b.prefix != "" {

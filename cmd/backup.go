@@ -97,8 +97,10 @@ func createDirectory(path string) error {
 	src, err := os.Stat(path)
 
 	if os.IsNotExist(err) {
+		fmt.Printf("Creating output destination: %s\n", path)
 		return os.MkdirAll(path, 0755)
 	} else if src.Mode().IsRegular() {
+		fmt.Printf("Output destination '%s' exists, but is a file\n")
 		return os.ErrExist
 	} else {
 		return nil
@@ -130,12 +132,10 @@ func jobCmdRun(cmd *cobra.Command, args []string) {
 		runJob(j, e)
 		wg.Done()
 	}(job, environmentArg)
-
+	wg.Wait()
 }
 
 func runJob(job config.Job, environmentName string) {
-	fmt.Printf("Running job: %s\n", job.Name)
-
 	var wg sync.WaitGroup
 	var err error
 	if environmentName != "" {
@@ -146,6 +146,7 @@ func runJob(job config.Job, environmentName string) {
 			return
 		}
 
+		fmt.Printf("Running job %s for environment %s\n", job.Name, env.Name)
 		wg.Add(1)
 		go func(e registry.Environment, s config.BackupSettings) {
 			doBackup(getOutputPath(s.Path, e.Name, s.FolderPerEnvironment), s.Prefix, s.Level, e)
@@ -153,6 +154,7 @@ func runJob(job config.Job, environmentName string) {
 		}(env, job.BackupSettings)
 	} else {
 		for _, env := range job.Environments {
+			fmt.Printf("Running job %s for environment %s\n", job.Name, env.Name)
 			wg.Add(1)
 			go func(e registry.Environment, s config.BackupSettings) {
 				doBackup(getOutputPath(s.Path, e.Name, s.FolderPerEnvironment), s.Prefix, s.Level, e)
